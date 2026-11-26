@@ -13,7 +13,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, classification_report
+    confusion_matrix, classification_report, roc_auc_score, average_precision_score,
+    roc_curve, precision_recall_curve
 )
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -59,14 +60,44 @@ div[data-testid="stMetric"] label { color: #9fb3c8 !important; }
 div[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #eaf5ff; }
 .block-container { padding-top: 1.5rem; }
 div[data-testid="stDataFrame"] { border: 1px solid #263b54; border-radius: 10px; }
+/* Refined dashboard surfaces and stronger hierarchy */
+.cg-workspace-hero { position:relative; overflow:hidden; display:flex; align-items:center; gap:1.05rem; padding:1.15rem 1.35rem; margin:.15rem 0 1.15rem; border:1px solid color-mix(in srgb, var(--cg-accent) 28%, #24364e); border-radius:20px; background:linear-gradient(112deg, color-mix(in srgb, var(--cg-page-glow) 76%, #101b2b), rgba(11,20,34,.92)); box-shadow:0 8px 30px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.035); }
+.cg-workspace-hero:before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, color-mix(in srgb, var(--cg-accent) 10%, transparent), transparent 56%); pointer-events:none; }
+.cg-hero-icon { position:relative; display:grid; place-items:center; width:54px; height:54px; flex:0 0 54px; border-radius:16px; font-size:1.65rem; background:color-mix(in srgb, var(--cg-accent) 13%, #101c2c); border:1px solid color-mix(in srgb, var(--cg-accent) 35%, transparent); box-shadow:0 0 22px color-mix(in srgb, var(--cg-accent) 12%, transparent); }
+.cg-hero-copy { position:relative; z-index:1; }
+.cg-hero-eyebrow { font-size:.66rem; letter-spacing:.15em; font-weight:750; color:var(--cg-accent); margin-bottom:.25rem; }
+.cg-hero-title { color:#f7fbff; font-size:clamp(1.25rem,2.2vw,1.8rem); line-height:1.18; font-weight:800; letter-spacing:-.035em; }
+.cg-hero-subtitle { color:#a9bdd2; font-size:.88rem; margin-top:.25rem; }
+.cg-hero-orb { position:absolute; right:-35px; top:-72px; width:190px; height:190px; border-radius:50%; background:color-mix(in srgb, var(--cg-accent) 13%, transparent); filter:blur(20px); }
+.block-container { max-width: 1500px; padding-left: 2.2rem; padding-right: 2.2rem; padding-bottom: 3rem; }
+[data-testid="stHorizontalBlock"] { gap: 1rem; }
+[data-testid="stVerticalBlockBorderWrapper"] { background: rgba(13,25,43,.48); border: 1px solid rgba(117,151,190,.14); border-radius: 16px; }
+[data-testid="stMetric"] { min-height: 108px; display: flex; flex-direction: column; justify-content: center; }
+[data-testid="stMetricLabel"] { font-size: .82rem !important; letter-spacing: .025em; }
+[data-testid="stMetricValue"] { font-size: clamp(1.35rem, 2.1vw, 2rem) !important; font-weight: 750 !important; }
+[data-testid="stPlotlyChart"] { padding: .35rem .25rem; }
+[data-testid="stExpander"] { border: 1px solid rgba(117,151,190,.16); border-radius: 13px; }
+hr { border-color: rgba(117,151,190,.20) !important; }
+.stMarkdown p { line-height: 1.55; }
+@media (max-width: 900px) { .block-container { padding-left: 1rem; padding-right: 1rem; } }
 div.stButton > button, div.stDownloadButton > button {
     border-radius: 9px; border: 1px solid #2c7894; font-weight: 650;
 }
 .small-note { color: #9fb3c8; font-size: .88rem; }
 .status-pill { padding: 7px 12px; border-radius: 20px; display: inline-block;
     background: #123c35; color: #86efac; border: 1px solid #23785f; font-size: 13px; }
-.warning-pill { padding: 7px 12px; border-radius: 20px; display: inline-block;
+ .warning-pill { padding: 7px 12px; border-radius: 20px; display: inline-block;
     background: #49351a; color: #fcd34d; border: 1px solid #9a6b25; font-size: 13px; }
+/* Premium ambient glow: subtle, accessible, and theme-preserving */
+div[data-testid="stMetric"], div[data-testid="stPlotlyChart"], div[data-testid="stDataFrame"],
+div[data-testid="stVerticalBlockBorderWrapper"] { transition: box-shadow .30s ease, transform .25s ease, border-color .30s ease; }
+div[data-testid="stMetric"] { box-shadow: 0 0 10px rgba(255,255,255,.035), 0 4px 18px rgba(0,0,0,.12); }
+div[data-testid="stMetric"]:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(255,255,255,.08), 0 0 22px rgba(100,190,255,.10), 0 8px 24px rgba(0,0,0,.20); }
+div[data-testid="stPlotlyChart"], div[data-testid="stDataFrame"], div[data-testid="stVerticalBlockBorderWrapper"] { box-shadow: 0 0 10px rgba(255,255,255,.025), 0 5px 20px rgba(0,0,0,.12); border-radius: 14px; }
+div[data-testid="stPlotlyChart"]:hover, div[data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 0 15px rgba(255,255,255,.055), 0 0 20px rgba(110,170,255,.07), 0 8px 24px rgba(0,0,0,.17); }
+.stButton > button, .stDownloadButton > button { transition: box-shadow .25s ease, transform .20s ease, filter .25s ease; }
+.stButton > button:hover, .stDownloadButton > button:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(255,255,255,.10), 0 0 18px rgba(100,190,255,.12); filter: brightness(1.04); }
+@media (prefers-reduced-motion: reduce) { div[data-testid="stMetric"], div[data-testid="stPlotlyChart"], div[data-testid="stDataFrame"], div[data-testid="stVerticalBlockBorderWrapper"], .stButton > button, .stDownloadButton > button { transition:none !important; transform:none !important; } }
 </style>
 """, unsafe_allow_html=True)
 
@@ -141,8 +172,409 @@ def safe_percent(numerator, denominator):
 
 def normalize_id(series):
     return series.astype(str).str.strip().str.replace(
-        r"\\.0$", "", regex=True
+        r"\.0$", "", regex=True
     )
+
+
+INDUSTRIES = {
+    "Banking & Finance": {
+        "customer_terms": ["Customer", "Account", "Client"],
+        "activity_terms": ["Transaction", "Balance", "Product", "Account", "Tenure"],
+        "retention_language": "account retention",
+        "examples": "account closure, reduced product usage, declining balances, service issues",
+        "actions": [
+            "Prioritize high-value accounts showing declining engagement or product usage.",
+            "Review service complaints, fees, and friction in digital banking journeys.",
+            "Offer relevant financial products based on verified customer needs and eligibility.",
+        ],
+    },
+    "Healthcare": {
+        "customer_terms": ["Patient", "Member"],
+        "activity_terms": ["Visit", "Appointment", "Treatment", "FollowUp", "Care", "Provider"],
+        "retention_language": "patient engagement / continuity of care",
+        "examples": "missed follow-ups, care disengagement, appointment gaps, service experience",
+        "actions": [
+            "Identify patients with missed or overdue follow-ups and use appropriate outreach.",
+            "Review appointment access, care coordination, and patient experience barriers.",
+            "Use privacy-conscious, clinically appropriate engagement workflows.",
+        ],
+    },
+    "Education": {
+        "customer_terms": ["Student", "Learner", "Enrollment"],
+        "activity_terms": ["Course", "Attendance", "Grade", "Engagement", "Semester", "Program"],
+        "retention_language": "student persistence / continuation",
+        "examples": "attendance decline, low engagement, course progress, discontinuation",
+        "actions": [
+            "Flag learners with declining attendance or engagement for supportive check-ins.",
+            "Review academic, scheduling, financial, and access barriers before outreach.",
+            "Connect at-risk students with tutoring, advising, and relevant support resources.",
+        ],
+    },
+    "Hospitality": {
+        "customer_terms": ["Guest", "Customer", "Member"],
+        "activity_terms": ["Booking", "Reservation", "Stay", "Visit", "Room", "Rating"],
+        "retention_language": "repeat-guest retention",
+        "examples": "fewer repeat stays, poor ratings, booking gaps, service dissatisfaction",
+        "actions": [
+            "Personalize guest follow-up using preference and stay history where consent allows.",
+            "Investigate low ratings and recurring service issues promptly.",
+            "Design loyalty and return-visit offers around guest segments and seasonality.",
+        ],
+    },
+    "Telecommunications": {
+        "customer_terms": ["Customer", "Subscriber", "Account"],
+        "activity_terms": ["Plan", "Usage", "Call", "Data", "Network", "Recharge", "Tenure"],
+        "retention_language": "subscriber retention / cancellation",
+        "examples": "plan downgrades, low usage, network issues, billing complaints, cancellation",
+        "actions": [
+            "Investigate network quality and billing/service complaints for high-risk subscribers.",
+            "Offer plan-fit reviews for customers with usage changes or repeated overages.",
+            "Prioritize retention outreach by risk, tenure, and customer value.",
+        ],
+    },
+    "SaaS & Technology": {
+        "customer_terms": ["Customer", "Account", "Organization", "User"],
+        "activity_terms": ["Subscription", "Renewal", "Login", "Usage", "Feature", "Seat", "Plan"],
+        "retention_language": "subscription retention / renewal",
+        "examples": "declining product usage, renewal risk, low adoption, support friction",
+        "actions": [
+            "Identify accounts with declining product usage or low adoption of key features.",
+            "Provide targeted onboarding, training, and customer-success support.",
+            "Review renewal timing, unresolved support issues, and plan-value alignment.",
+        ],
+    },
+}
+
+# Separate, memorable page identities. Chart series still use semantic colors for outcomes.
+PAGE_PALETTES = {
+    "Executive Dashboard": {"accent": "#22D3EE", "secondary": "#60A5FA", "tertiary": "#A78BFA", "gradient": "#0B2440", "chart": ["#22D3EE", "#60A5FA", "#A78BFA", "#34D399", "#FBBF24", "#FB7185"]},
+    "PY vs AY Comparison": {"accent": "#A78BFA", "secondary": "#818CF8", "tertiary": "#C084FC", "gradient": "#25184D", "chart": ["#818CF8", "#A78BFA", "#C084FC", "#38BDF8", "#F472B6", "#FBBF24"]},
+    "Advanced Visualizer": {"accent": "#2DD4BF", "secondary": "#5EEAD4", "tertiary": "#38BDF8", "gradient": "#073B3A", "chart": ["#2DD4BF", "#38BDF8", "#A3E635", "#F59E0B", "#F472B6", "#818CF8"]},
+    "Data Quality & Ingestion": {"accent": "#34D399", "secondary": "#A3E635", "tertiary": "#86EFAC", "gradient": "#123B2C", "chart": ["#34D399", "#A3E635", "#22D3EE", "#FBBF24", "#FB7185", "#818CF8"]},
+    "ML Model Evaluation": {"accent": "#E879F9", "secondary": "#C084FC", "tertiary": "#F472B6", "gradient": "#42144D", "chart": ["#E879F9", "#C084FC", "#818CF8", "#22D3EE", "#FBBF24", "#34D399"]},
+    "Stakeholder Report": {"accent": "#FB7185", "secondary": "#F472B6", "tertiary": "#FDA4AF", "gradient": "#4A182D", "chart": ["#FB7185", "#F472B6", "#FDA4AF", "#A78BFA", "#22D3EE", "#FBBF24"]},
+    "Business Assistant": {"accent": "#FBBF24", "secondary": "#F59E0B", "tertiary": "#FDE68A", "gradient": "#493015", "chart": ["#FBBF24", "#F59E0B", "#FDE68A", "#34D399", "#22D3EE", "#F472B6"]},
+}
+
+
+def render_workspace_header(title, subtitle, icon="🛡️"):
+    """Render a compact premium page header using the active workspace accent."""
+    st.markdown(
+        f"""<div class='cg-workspace-hero'><div class='cg-hero-icon'>{icon}</div>
+        <div class='cg-hero-copy'><div class='cg-hero-eyebrow'>CHURN GUARDIAN · ANALYTICS WORKSPACE</div>
+        <div class='cg-hero-title'>{title}</div><div class='cg-hero-subtitle'>{subtitle}</div></div>
+        <div class='cg-hero-orb'></div></div>""",
+        unsafe_allow_html=True
+    )
+
+
+INDUSTRY_COLUMN_ALIASES = {
+    "Banking & Finance": {
+        "id": ["CustomerID", "ClientID", "AccountID", "CustomerNumber", "AccountNumber", "MemberID"],
+        "activity_date": ["LastTransactionDate", "LastActivityDate", "TransactionDate", "LastContactDate"],
+        "target": ["Churn", "Attrition", "Exited", "AccountClosed", "ClosedAccount", "CustomerExit"],
+        "activity": ["DaysInactive", "DaysSinceLastTransaction", "DaysSinceLastActivity", "RecencyDays", "LastActivityDays"],
+        "value": ["Balance", "AccountBalance", "Revenue", "MonthlyCharges", "TotalSpend", "Amount"],
+    },
+    "Healthcare": {
+        "id": ["PatientID", "MemberID", "ClientID", "CustomerID", "PersonID", "MRN"],
+        "activity_date": ["LastVisitDate", "LastAppointmentDate", "LastFollowUpDate", "LastActivityDate"],
+        "target": ["Attrition", "Churn", "Disengaged", "LostToFollowUp", "Inactive"],
+        "activity": ["DaysSinceLastVisit", "DaysSinceLastAppointment", "DaysInactive", "DaysSinceLastActivity", "RecencyDays"],
+        "value": ["Visits", "VisitCount", "Appointments", "Claims", "Cost", "Charges"],
+    },
+    "Education": {
+        "id": ["StudentID", "LearnerID", "EnrollmentID", "MemberID", "CustomerID"],
+        "activity_date": ["LastLoginDate", "LastClassDate", "LastAttendanceDate", "LastActivityDate"],
+        "target": ["Dropout", "DroppedOut", "Attrition", "Withdrawn", "Discontinued", "Churn"],
+        "activity": ["DaysSinceLastLogin", "DaysSinceLastActivity", "DaysInactive", "DaysSinceLastClass", "RecencyDays"],
+        "value": ["Attendance", "AttendanceRate", "Engagement", "Credits", "Grade", "Progress", "Fees", "Tuition", "TotalFees", "PaymentAmount"],
+    },
+    "Hospitality": {
+        "id": ["GuestID", "CustomerID", "MemberID", "ClientID"],
+        "activity_date": ["LastStayDate", "LastBookingDate", "LastVisitDate", "LastActivityDate"],
+        "target": ["Churn", "Attrition", "LostGuest", "NotReturning"],
+        "activity": ["DaysSinceLastStay", "DaysSinceLastVisit", "DaysInactive", "RecencyDays"],
+        "value": ["Bookings", "BookingCount", "StayCount", "Revenue", "Spend", "Rating"],
+    },
+    "Telecommunications": {
+        "id": ["SubscriberID", "CustomerID", "AccountID", "PhoneNumber", "MobileNumber"],
+        "activity_date": ["LastUsageDate", "LastRechargeDate", "LastCallDate", "LastActivityDate"],
+        "target": ["Churn", "Churned", "Cancelled", "Canceled", "Disconnected", "Attrition"],
+        "activity": ["DaysInactive", "DaysSinceLastUsage", "DaysSinceLastRecharge", "DaysSinceLastActivity", "RecencyDays"],
+        "value": ["MonthlyCharges", "TotalCharges", "DataUsage", "Usage", "Revenue", "RechargeAmount"],
+    },
+    "SaaS & Technology": {
+        "id": ["AccountID", "OrganizationID", "CustomerID", "UserID", "SubscriptionID"],
+        "activity_date": ["LastLoginDate", "LastUsageDate", "LastFeatureUseDate", "LastActivityDate"],
+        "target": ["Churn", "Cancelled", "Canceled", "NonRenewal", "RenewalStatus", "Attrition"],
+        "activity": ["DaysSinceLastLogin", "DaysSinceLastUsage", "DaysInactive", "LastActiveDays", "RecencyDays"],
+        "value": ["MRR", "ARR", "MonthlyRecurringRevenue", "SubscriptionValue", "Usage", "Seats", "FeatureUsage"],
+    },
+}
+
+
+
+
+def detect_industry_from_dataset(py_frame=None, ay_frame=None):
+    """Infer a supported industry from strong schema signals; return None if ambiguous."""
+    frames = [f for f in (py_frame, ay_frame) if isinstance(f, pd.DataFrame) and not f.empty]
+    if not frames:
+        return None, 0, []
+    normalized_cols = set()
+    raw_cols = []
+    for frame in frames:
+        for col in frame.columns:
+            raw = str(col).strip()
+            raw_cols.append(raw)
+            normalized_cols.add(re.sub(r"[^a-z0-9]", "", raw.lower()))
+    # Strong domain-specific signals are weighted above generic words like customer/status/plan.
+    signatures = {
+        "Banking & Finance": {
+            "strong": ["creditscore", "creditcard", "loanamount", "mortgage", "accountbalance", "bankbalance", "estimatedsalary", "numofproducts", "creditlimit", "overdraft"],
+            "medium": ["transactiondate", "accounttype", "debit", "credit", "interest", "branch", "investment", "savingsaccount"],
+        },
+        "Healthcare": {
+            "strong": ["patientid", "mrn", "diagnosis", "treatment", "medicalrecord", "providerid", "lastvisitdate", "appointmentdate", "prescription", "clinical"],
+            "medium": ["visitcount", "appointment", "healthplan", "insurance", "careplan", "claim", "procedure", "patient"],
+        },
+        "Education": {
+            "strong": ["studentid", "enrollmentid", "courseid", "attendance", "grade", "semester", "creditscompleted", "gpa", "dropout", "schoolid"],
+            "medium": ["learner", "class", "faculty", "tuition", "academic", "program", "assignment", "exam", "student"],
+        },
+        "Hospitality": {
+            "strong": ["guestid", "bookingid", "reservationid", "checkindate", "checkoutdate", "roomtype", "staycount", "hotelid", "laststaydate"],
+            "medium": ["booking", "reservation", "guest", "room", "stay", "hotel", "hospitality", "rating", "review", "nights"],
+        },
+        "Telecommunications": {
+            "strong": ["subscriberid", "monthlydatausagegb", "monthlycallminutes", "internetservice", "internationalroaming", "databundle", "voiceplan", "lastrechargedate", "networktype", "telecom"],
+            "medium": ["datausage", "callminutes", "subscriptionplan", "contracttype", "recharge", "mobile", "phone", "sim", "roaming", "telecommunication", "voice", "broadband"],
+        },
+        "SaaS & Technology": {
+            "strong": ["mrr", "arr", "monthlyrecurringrevenue", "featureusage", "lastlogindate", "seatcount", "organizationid", "subscriptionid", "productusage", "renewaldate"],
+            "medium": ["saas", "subscription", "login", "feature", "seat", "software", "workspace", "api", "license", "productadoption", "renewal", "appusage"],
+        },
+    }
+    scores = {}
+    evidence = {}
+    for industry, spec in signatures.items():
+        strong_hits = [x for x in spec["strong"] if x in normalized_cols]
+        medium_hits = [x for x in spec["medium"] if any(x in c for c in normalized_cols)]
+        scores[industry] = len(strong_hits) * 4 + len(medium_hits)
+        evidence[industry] = strong_hits + medium_hits
+    # Extra evidence from customer identifier values (e.g. TEL2025... IDs).
+    for frame in frames:
+        for col in frame.columns:
+            norm = re.sub(r"[^a-z0-9]", "", str(col).lower())
+            if norm in {"customerid", "subscriberid", "accountid"}:
+                sample = frame[col].dropna().astype(str).head(30).str.upper()
+                if sample.str.match(r"^(TEL|MOB|SUB)[0-9]{6,}$").mean() >= .6:
+                    scores["Telecommunications"] += 8
+                    if "telecom-style customer IDs" not in evidence["Telecommunications"]:
+                        evidence["Telecommunications"].append("telecom-style customer IDs")
+                    break
+    ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    top_industry, top_score = ranked[0]
+    runner_score = ranked[1][1]
+    # Require a clear margin and more than a single generic signal.
+    if top_score < 5 or top_score - runner_score < 2:
+        return None, top_score, evidence.get(top_industry, [])
+    signal_strength = "Strong" if top_score >= 12 and (top_score - runner_score) >= 5 else "Moderate"
+    return top_industry, signal_strength, evidence[top_industry]
+
+
+def industry_dataset_signature(py_frame=None, ay_frame=None, py_name="", ay_name=""):
+    pieces = [py_name, ay_name]
+    for frame in (py_frame, ay_frame):
+        if isinstance(frame, pd.DataFrame):
+            pieces.append("|".join(map(str, frame.columns)))
+            pieces.append(str(len(frame)))
+    return "::".join(pieces)
+
+
+def mark_industry_manual():
+    st.session_state["_industry_manually_selected"] = True
+
+
+def normalize_identifier(series, kind="generic"):
+    values = series.fillna("").astype(str).str.strip()
+    if kind == "email":
+        return values.str.lower()
+    if kind == "phone":
+        return values.str.replace(r"\D", "", regex=True)
+    return values.str.lower().str.replace(r"\.0$", "", regex=True)
+
+
+def detect_identity_column(df, industry):
+    aliases = INDUSTRY_COLUMN_ALIASES.get(industry, {}).get("id", []) + [
+        "CustomerID", "Customer_ID", "ClientID", "AccountID", "UserID", "MemberID", "StudentID", "PatientID", "GuestID", "SubscriberID", "OrganizationID"
+    ]
+    found = find_column(df, aliases)
+    if found:
+        normalized = re.sub(r"[^a-z0-9]", "", found.lower())
+        if normalized in {"phonenumber", "mobilenumber", "contactnumber"}:
+            return found, "phone"
+        if normalized not in {"transactionid", "purchaseid", "orderid", "recordid", "rowid", "invoiceid"}:
+            return found, "id"
+    email = find_column(df, ["Email", "EmailAddress", "ContactEmail", "Mail"])
+    if email:
+        return email, "email"
+    phone = find_column(df, ["Phone", "PhoneNumber", "Mobile", "MobileNumber", "ContactNumber"])
+    if phone:
+        return phone, "phone"
+    return None, None
+
+
+def map_churn_binary(series, industry):
+    """Map common attrition values to 0=retained/active and 1=attrited.
+    If labels are unfamiliar, return None so callers can use a clearly documented fallback.
+    """
+    positive = {
+        "yes", "true", "1", "1.0", "y", "churn", "churned", "attrited", "exited",
+        "inactive", "closed", "closed account", "cancelled", "canceled",
+        "disconnected", "dropout", "dropped out", "withdrawn", "discontinued",
+        "lost", "lost to follow up", "disengaged", "nonrenewal", "non-renewal",
+        "not renewed", "terminated", "left", "no longer active"
+    }
+    negative = {
+        "no", "false", "0", "0.0", "n", "retained", "active", "stay", "stayed",
+        "open", "current", "enrolled", "continuing", "continued", "renewed",
+        "not churned", "not attrited", "not dropped", "not cancelled", "not canceled",
+        "engaged", "returning", "ongoing"
+    }
+    text = series.astype(str).str.strip().str.lower()
+    mapped = text.map(lambda v: 1 if v in positive else (0 if v in negative else np.nan))
+    if mapped.notna().sum() >= max(2, int(series.notna().sum() * 0.8)) and mapped.dropna().nunique() == 2:
+        return mapped
+    return None
+
+
+def detect_identity_pair(py_frame, ay_frame, industry):
+    """Choose a reliable identity field available in BOTH annual datasets.
+    Prefer same-named stable IDs, then shared email/phone, and only then
+    cross-named ID fields (which may be different identifier systems).
+    """
+    industry_ids = INDUSTRY_COLUMN_ALIASES.get(industry, {}).get("id", [])
+    generic_ids = ["CustomerID", "Customer_ID", "ClientID", "AccountID", "UserID", "MemberID", "StudentID", "PatientID", "GuestID", "SubscriberID", "OrganizationID", "CustomerNumber", "AccountNumber"]
+    id_candidates = industry_ids + generic_ids
+    py_lookup = {re.sub(r"[^a-z0-9]", "", str(c).lower()): c for c in py_frame.columns}
+    ay_lookup = {re.sub(r"[^a-z0-9]", "", str(c).lower()): c for c in ay_frame.columns}
+    for candidate in id_candidates:
+        key = re.sub(r"[^a-z0-9]", "", candidate.lower())
+        if key in py_lookup and key in ay_lookup:
+            return py_lookup[key], ay_lookup[key], "id"
+    for candidates, kind in [
+        (["Email", "EmailAddress", "ContactEmail", "Mail"], "email"),
+        (["Phone", "PhoneNumber", "Mobile", "MobileNumber", "ContactNumber"], "phone"),
+    ]:
+        py_col = find_column(py_frame, candidates)
+        ay_col = find_column(ay_frame, candidates)
+        if py_col and ay_col:
+            return py_col, ay_col, kind
+    # Last resort: cross-named IDs only. Validate the resulting overlap and duplicates.
+    py_col = find_column(py_frame, id_candidates)
+    ay_col = find_column(ay_frame, id_candidates)
+    if py_col and ay_col:
+        return py_col, ay_col, "id"
+    return None, None, None
+
+
+def map_binary_target_for_display(series, industry):
+    """Map a verified binary target for KPI/segment display; numeric direction is explicit."""
+    mapped = map_churn_binary(series, industry)
+    if mapped is not None and mapped.dropna().nunique() == 2:
+        return mapped
+    if pd.api.types.is_numeric_dtype(series) and series.dropna().nunique() == 2:
+        values = sorted(pd.to_numeric(series, errors="coerce").dropna().unique().tolist())
+        return pd.to_numeric(series, errors="coerce").map({values[0]: 0, values[1]: 1})
+    return None
+
+
+def identify_churn_target(df, industry):
+    """Find explicitly named churn/attrition outcomes; generic Status is validated separately."""
+    candidates = INDUSTRY_COLUMN_ALIASES.get(industry, {}).get("target", []) + [
+        "Churn", "Churned", "ChurnFlag", "IsChurned", "Attrition", "AttritionFlag",
+        "Exited", "ExitFlag", "Dropout", "DroppedOut", "Cancelled", "Canceled",
+        "Cancellation", "Disconnected", "Disconnection", "NonRenewal", "LostToFollowUp",
+        "AccountClosed", "ClosedAccount", "CustomerExit", "LostGuest", "NotReturning",
+        "Disengaged", "Withdrawn", "Discontinued"
+    ]
+    found = find_column(df, candidates)
+    if found:
+        return found
+    # Generic outcome names are considered only after checking their actual values.
+    generic = find_column(df, ["Target", "Label", "Outcome", "ChurnTarget", "RetentionTarget"])
+    if generic is not None:
+        raw = df[generic]
+        if raw.dropna().nunique() == 2 and (pd.api.types.is_numeric_dtype(raw) or map_churn_binary(raw, industry) is not None):
+            return generic
+    # Status is deliberately last and must be binary with interpretable values.
+    status = find_column(df, ["CustomerStatus", "AccountStatus", "SubscriptionStatus", "EnrollmentStatus", "PatientStatus", "GuestStatus", "SubscriberStatus", "Status"])
+    if status is not None:
+        raw = df[status]
+        mapped = map_churn_binary(raw, industry)
+        if raw.dropna().nunique() == 2 and mapped is not None and mapped.dropna().nunique() == 2:
+            return status
+    return None
+
+
+def classify_analysis_mode(df, industry, threshold):
+    """Select one of the three modes using data evidence, never industry alone."""
+    target = identify_churn_target(df, industry)
+    if target is not None:
+        raw = df[target]
+        mapped = map_churn_binary(raw, industry)
+        if mapped is not None and mapped.dropna().nunique() == 2:
+            return "actual_target", target, "A usable binary target with interpretable class labels was detected."
+        if pd.api.types.is_numeric_dtype(raw) and raw.dropna().nunique() == 2:
+            return "actual_target", target, "A two-class numeric target was detected; numeric class direction requires review."
+        # Do not elevate ambiguous categories to actual churn labels.
+
+    inactivity_col = detect_inactivity_column(df, industry)
+    if inactivity_col:
+        inactivity = pd.to_numeric(df[inactivity_col], errors="coerce")
+        proxy = (inactivity >= threshold).where(inactivity.notna())
+        if proxy.dropna().nunique() == 2 and proxy.notna().sum() >= 30:
+            return "proxy_target", inactivity_col, f"A usable inactivity field supports a transparent {threshold}-day rule with both classes present."
+
+    date_col = detect_activity_date_column(df, industry)
+    if date_col:
+        inactivity, ref_date, detected_date = derive_inactivity_days(df, industry)
+        if inactivity is not None:
+            proxy = (inactivity >= threshold).where(inactivity.notna())
+            if proxy.dropna().nunique() == 2 and proxy.notna().sum() >= 30:
+                return "proxy_target", date_col, f"A last-activity date supports a {threshold}-day inactivity proxy relative to {ref_date.date()}."
+
+    return "exploratory", None, "No verified binary target or sufficiently supported inactivity proxy was found."
+
+
+def detect_inactivity_column(df, industry):
+    candidates = INDUSTRY_COLUMN_ALIASES.get(industry, {}).get("activity", []) + [
+        "DaysSinceLastPurchase", "DaysInactive", "RecencyDays", "DaysSinceLastOrder", "DaysSinceLastActivity", "DaysSinceLastLogin"
+    ]
+    return find_column(df, candidates)
+
+
+def detect_activity_date_column(df, industry):
+    candidates = INDUSTRY_COLUMN_ALIASES.get(industry, {}).get("activity_date", []) + [
+        "LastActivityDate", "LastActiveDate", "LastLoginDate", "LastVisitDate", "LastTransactionDate", "LastUsageDate", "LastContactDate"
+    ]
+    return find_column(df, candidates)
+
+
+def derive_inactivity_days(df, industry):
+    date_col = detect_activity_date_column(df, industry)
+    if not date_col:
+        return None, None, None
+    parsed = pd.to_datetime(df[date_col], errors="coerce")
+    valid = parsed.dropna()
+    if valid.empty:
+        return None, None, date_col
+    # Use the latest date present in this dataset as the snapshot reference date.
+    reference_date = valid.max()
+    days = (reference_date - parsed).dt.days.astype(float)
+    days[parsed.isna()] = np.nan
+    return days, reference_date, date_col
 
 
 @st.cache_data(show_spinner=False)
@@ -322,6 +754,31 @@ def make_pdf_report(report_data):
 
 # ----------------------------- SIDEBAR ---------------------------------------
 
+# Central upload state is initialized before the sidebar so industry inference can
+# update the selectbox value safely on reruns (including after a new upload).
+for _key, _default in {
+    "py_data": None, "ay_data": None, "py_filename": "", "ay_filename": "",
+    "_industry_manually_selected": False, "_industry_dataset_signature": "",
+}.items():
+    if _key not in st.session_state:
+        st.session_state[_key] = _default
+
+_auto_industry, _auto_confidence, _auto_evidence = detect_industry_from_dataset(
+    st.session_state.py_data, st.session_state.ay_data
+)
+_current_signature = industry_dataset_signature(
+    st.session_state.py_data, st.session_state.ay_data,
+    st.session_state.py_filename, st.session_state.ay_filename
+)
+if st.session_state.py_data is not None or st.session_state.ay_data is not None:
+    if _current_signature != st.session_state.get("_industry_dataset_signature", ""):
+        st.session_state["_industry_dataset_signature"] = _current_signature
+        st.session_state["_industry_manually_selected"] = False
+        if _auto_industry:
+            st.session_state["selected_industry"] = _auto_industry
+    elif not st.session_state.get("_industry_manually_selected", False) and _auto_industry:
+        st.session_state["selected_industry"] = _auto_industry
+
 with st.sidebar:
 
     try:
@@ -347,6 +804,35 @@ with st.sidebar:
     )
 
     st.markdown("---")
+    selected_palette = PAGE_PALETTES.get(page, PAGE_PALETTES["Executive Dashboard"])
+    swatches = "".join(
+        f'<span style="display:inline-block;width:18px;height:18px;border-radius:5px;margin-right:5px;background:{c};box-shadow:0 0 10px {c}55"></span>'
+        for c in selected_palette["chart"][:5]
+    )
+    st.markdown(f"<div style='margin:0 0 8px 0'>{swatches}</div><small style='color:#9fb3c8'>Active page palette</small>", unsafe_allow_html=True)
+    st.subheader("Industry intelligence")
+
+    selected_industry = st.selectbox(
+        "Select industry",
+        list(INDUSTRIES.keys()),
+        key="selected_industry",
+        on_change=mark_industry_manual,
+        help="Industry is automatically inferred from dataset fields when confidence is strong. You can override it at any time."
+    )
+
+    if _auto_industry and (st.session_state.py_data is not None or st.session_state.ay_data is not None):
+        if st.session_state.get("_industry_manually_selected", False):
+            st.caption(f"🖐️ Manual industry selection · Dataset signal: {_auto_industry} ({_auto_confidence.lower()} match)")
+        else:
+            st.caption(f"🔎 Auto-detected: {_auto_industry} · {_auto_confidence.lower()} schema match")
+    elif st.session_state.py_data is None and st.session_state.ay_data is None:
+        st.caption("Industry will be auto-detected after you upload your dataset.")
+    else:
+        st.caption("No strong industry signal found in the uploaded columns. Please select the industry manually.")
+
+    st.caption(f"Industry lens: {INDUSTRIES[selected_industry]['retention_language']}")
+
+    st.markdown("---")
     st.subheader("Analysis settings")
 
     inactivity_days = st.number_input(
@@ -363,26 +849,31 @@ with st.sidebar:
     )
 
 
+# ----------------------- ACTIVE PAGE THEME ----------------------------------
+
+active_palette = PAGE_PALETTES.get(page, PAGE_PALETTES["Executive Dashboard"])
+px.defaults.template = "plotly_dark"
+px.defaults.color_discrete_sequence = active_palette["chart"]
+st.markdown(f"""
+<style>
+:root {{ --cg-accent: {active_palette['accent']}; --cg-secondary: {active_palette['secondary']}; --cg-tertiary: {active_palette['tertiary']}; --cg-page-glow: {active_palette['gradient']}; }}
+.stApp {{ background: radial-gradient(ellipse at 12% 0%, var(--cg-page-glow) 0%, #08111f 58%, #070d18 100%) !important; }}
+[data-testid="stSidebar"] {{ background: linear-gradient(180deg, var(--cg-page-glow), #0d192b 68%) !important; }}
+[data-testid="stSidebar"] [aria-selected="true"] {{ border-left: 3px solid var(--cg-accent) !important; background: color-mix(in srgb, var(--cg-accent) 10%, transparent) !important; }}
+[data-testid="stMetric"] {{ border-color: color-mix(in srgb, var(--cg-accent) 46%, #20324a) !important; box-shadow: 0 0 18px color-mix(in srgb, var(--cg-accent) 9%, transparent); }}
+[data-testid="stMetric"] [data-testid="stMetricValue"] {{ text-shadow: 0 0 18px color-mix(in srgb, var(--cg-accent) 35%, transparent); }}
+h1, h2, h3 {{ text-shadow: 0 0 14px color-mix(in srgb, var(--cg-accent) 20%, transparent); }}
+div.stButton > button, div.stDownloadButton > button {{ border-color: var(--cg-accent) !important; box-shadow: 0 0 9px color-mix(in srgb, var(--cg-accent) 10%, transparent); }}
+</style>
+""", unsafe_allow_html=True)
+
 # ------------------------ CENTRAL DATA UPLOAD -------------------------------
 
 # The ONLY upload controls in the application are on the PY vs AY Comparison page.
 
-if "py_data" not in st.session_state:
-    st.session_state.py_data = None
-
-if "ay_data" not in st.session_state:
-    st.session_state.ay_data = None
-
-if "py_filename" not in st.session_state:
-    st.session_state.py_filename = ""
-
-if "ay_filename" not in st.session_state:
-    st.session_state.ay_filename = ""
-
-
 if page == "PY vs AY Comparison":
 
-    st.title("📂 Upload Previous Year and Assessment Year")
+    render_workspace_header("PY vs AY · Dataset Upload", "Upload both year snapshots once to activate all connected workspaces.", "📂")
 
     st.write(
         "Upload both files here once. Every other page will automatically use these datasets."
@@ -446,6 +937,8 @@ if page == "PY vs AY Comparison":
 
                 st.session_state.py_filename = uploaded_py.name
                 st.session_state.ay_filename = uploaded_ay.name
+                st.session_state["_industry_manually_selected"] = False
+                st.session_state["_industry_dataset_signature"] = ""
 
                 st.success(
                     "Both datasets were loaded. All seven pages can now use the same data."
@@ -459,6 +952,9 @@ if page == "PY vs AY Comparison":
         st.session_state.ay_data = None
         st.session_state.py_filename = ""
         st.session_state.ay_filename = ""
+        st.session_state["_industry_manually_selected"] = False
+        st.session_state["_industry_dataset_signature"] = ""
+        st.session_state["selected_industry"] = "Banking & Finance"
         st.rerun()
 
     if st.session_state.py_data is not None and st.session_state.ay_data is not None:
@@ -477,8 +973,8 @@ ay_df = st.session_state.ay_data
 
 if py_df is None and ay_df is None:
 
-    st.title("🛡️ Churn Guardian")
-    st.markdown("### Enterprise customer analytics and retention intelligence")
+    render_workspace_header("Enterprise Customer Intelligence", "Upload annual datasets to unlock connected analytics, comparisons and insights.", "🛡️")
+    st.info(f"Selected industry: **{selected_industry}** · {INDUSTRIES[selected_industry]['retention_language']}")
 
     st.info(
         "Open **PY vs AY Comparison** from the sidebar and upload "
@@ -526,48 +1022,57 @@ main_df = (
 
 # Standardize known dataset column variants.
 
-id_col = find_column(
-    main_df,
-    ["CustomerID", "Customer_ID", "ClientID", "AccountID", "UserID"]
-)
+id_col, id_kind = detect_identity_column(main_df, selected_industry)
 
-py_id_col = (
-    find_column(
-        py_df,
-        ["CustomerID", "Customer_ID", "ClientID", "AccountID", "UserID"]
-    )
-    if py_df is not None else None
+py_id_col, py_id_kind = (
+    detect_identity_column(py_df, selected_industry)
+    if py_df is not None else (None, None)
 )
-
-ay_id_col = (
-    find_column(
-        ay_df,
-        ["CustomerID", "Customer_ID", "ClientID", "AccountID", "UserID"]
-    )
-    if ay_df is not None else None
+ay_id_col, ay_id_kind = (
+    detect_identity_column(ay_df, selected_industry)
+    if ay_df is not None else (None, None)
 )
 
 
 # Detect business measures by common aliases.
 
+industry_value_candidates = INDUSTRY_COLUMN_ALIASES[selected_industry]["value"]
+industry_metric_col = find_column(main_df, industry_value_candidates)
+financial_candidates_by_industry = {
+    "Banking & Finance": ["Balance", "AccountBalance", "Revenue", "Income", "TotalSpend", "Amount"],
+    "Healthcare": ["Cost", "Charges", "TotalCost", "Revenue", "BillingAmount", "Amount"],
+    "Education": ["Fees", "Tuition", "Revenue", "TotalFees", "PaymentAmount", "Amount"],
+    "Hospitality": ["Revenue", "Spend", "TotalSpend", "Amount"],
+    "Telecommunications": ["MonthlyCharges", "TotalCharges", "Revenue", "RechargeAmount", "Amount"],
+    "SaaS & Technology": ["MRR", "ARR", "MonthlyRecurringRevenue", "SubscriptionValue", "Revenue", "Amount"],
+}
 spend_col = find_column(
     main_df,
-    ["TotalSpend", "Total_Spend", "Revenue", "Sales", "TotalRevenue", "Amount"]
+    financial_candidates_by_industry[selected_industry] + ["TotalSpend", "Total_Spend", "Revenue", "Sales", "TotalRevenue", "Amount"]
 )
+
+industry_metric_label = {
+    "Banking & Finance": "Account balance / financial value",
+    "Healthcare": "Healthcare activity / cost measure",
+    "Education": "Student progress / fee measure",
+    "Hospitality": "Guest / booking measure",
+    "Telecommunications": "Subscriber usage / charge measure",
+    "SaaS & Technology": "Subscription / product-usage measure",
+}[selected_industry]
 
 orders_col = find_column(
     main_df,
-    ["OrderCount", "Orders", "NumberOfOrders", "PurchaseCount"]
+    ["OrderCount", "Orders", "NumberOfOrders", "PurchaseCount", "VisitCount", "BookingCount", "StayCount", "AppointmentCount", "TransactionCount", "UsageCount"]
 )
 
 aov_col = find_column(
     main_df,
-    ["AverageOrderValue", "AOV", "AvgOrderValue"]
+    ["AverageOrderValue", "AOV", "AvgOrderValue", "AverageRevenuePerUser", "ARPU", "AverageBalance", "AverageSpend"]
 )
 
 satisfaction_col = find_column(
     main_df,
-    ["SatisfactionScore", "CustomerSatisfaction", "CSAT"]
+    ["SatisfactionScore", "CustomerSatisfaction", "CSAT", "PatientSatisfaction", "GuestRating", "Rating", "NPS", "StudentSatisfaction"]
 )
 
 region_col = find_column(
@@ -577,18 +1082,22 @@ region_col = find_column(
 
 category_col = find_column(
     main_df,
-    ["PreferredCategory", "Category", "ProductCategory"]
+    ["PreferredCategory", "Category", "ProductCategory", "Segment", "CustomerSegment", "Plan", "PlanType", "Course", "Program", "ServiceType", "Department", "MembershipTier"]
 )
 
-days_col = find_column(
-    main_df,
-    ["DaysSinceLastPurchase", "DaysInactive", "RecencyDays", "DaysSinceLastOrder"]
+days_col = detect_inactivity_column(main_df, selected_industry)
+activity_date_col = detect_activity_date_column(main_df, selected_industry)
+
+target_col = identify_churn_target(main_df, selected_industry)
+analysis_mode, analysis_source, analysis_mode_reason = classify_analysis_mode(
+    main_df, selected_industry, inactivity_days
 )
 
-target_col = find_column(
-    main_df,
-    ["Churn", "Churned", "Attrition", "Exited", "Target", "Label", "Status"]
-)
+MODE_LABELS = {
+    "actual_target": "Mode 1 · Actual target / supervised ML",
+    "proxy_target": "Mode 2 · Derived proxy / rule-based ML",
+    "exploratory": "Mode 3 · Exploratory analytics",
+}
 
 
 # --------------------------- PY / AY MATCHING --------------------------------
@@ -597,56 +1106,55 @@ comparison = None
 
 if py_df is not None and ay_df is not None:
 
-    if py_id_col and ay_id_col:
+    py_identity, ay_identity, match_kind = detect_identity_pair(py_df, ay_df, selected_industry)
 
+    if py_identity and ay_identity and match_kind:
         py_work = py_df.copy()
         ay_work = ay_df.copy()
-
-        py_work["_match_id"] = normalize_id(py_work[py_id_col])
-        ay_work["_match_id"] = normalize_id(ay_work[ay_id_col])
-
-        py_ids = set(py_work["_match_id"].dropna())
-        ay_ids = set(ay_work["_match_id"].dropna())
-
+        py_work["_match_id"] = normalize_identifier(py_work[py_identity], match_kind)
+        ay_work["_match_id"] = normalize_identifier(ay_work[ay_identity], match_kind)
+        # Exclude empty / invalid normalized identifiers.
+        py_work = py_work[py_work["_match_id"].ne("")]
+        ay_work = ay_work[ay_work["_match_id"].ne("")]
+        py_ids = set(py_work["_match_id"])
+        ay_ids = set(ay_work["_match_id"])
         common_ids = py_ids & ay_ids
         lost_ids = py_ids - ay_ids
         new_ids = ay_ids - py_ids
-
+        # Detect identifiers that appear to be regenerated/year-coded rather than stable across snapshots.
+        py_raw_ids = py_work["_match_id"].astype(str)
+        ay_raw_ids = ay_work["_match_id"].astype(str)
+        year_code_pattern = re.compile(r"^([a-z]+)(20\d{2})(\d+)$", re.I)
+        py_codes = [year_code_pattern.match(v) for v in py_raw_ids]
+        ay_codes = [year_code_pattern.match(v) for v in ay_raw_ids]
+        py_years = {m.group(2) for m in py_codes if m}
+        ay_years = {m.group(2) for m in ay_codes if m}
+        year_coded_mismatch = bool(
+            len(py_years) == 1 and len(ay_years) == 1 and py_years != ay_years
+            and len(py_codes) >= max(20, int(len(py_raw_ids) * .8))
+            and len(ay_codes) >= max(20, int(len(ay_raw_ids) * .8))
+            and len(common_ids) == 0
+        )
         comparison = {
-            "py_count": len(py_ids),
-            "ay_count": len(ay_ids),
-            "retained": len(common_ids),
-            "not_observed": len(lost_ids),
-            "new": len(new_ids),
-            "py_ids": py_ids,
-            "ay_ids": ay_ids,
-            "common_ids": common_ids,
-            "lost_ids": lost_ids,
-            "new_ids": new_ids,
-            "py_work": py_work,
-            "ay_work": ay_work
+            "py_count": len(py_ids), "ay_count": len(ay_ids),
+            "retained": len(common_ids), "not_observed": len(lost_ids), "new": len(new_ids),
+            "py_ids": py_ids, "ay_ids": ay_ids, "common_ids": common_ids,
+            "lost_ids": lost_ids, "new_ids": new_ids, "py_work": py_work, "ay_work": ay_work,
+            "match_field": f"{py_identity} / {ay_identity}", "match_kind": match_kind,
+            "py_duplicates": int(py_work["_match_id"].duplicated().sum()),
+            "ay_duplicates": int(ay_work["_match_id"].duplicated().sum()),
+            "retention_comparable": not year_coded_mismatch,
+            "identity_warning": (f"IDs appear year-coded ({', '.join(sorted(py_years))} vs {', '.join(sorted(ay_years))}) and have zero overlap. These may be regenerated identifiers; customer retention cannot be reliably calculated from these fields." if year_coded_mismatch else None)
         }
-
-        comparison["retention_rate"] = safe_percent(
-            len(common_ids),
-            len(py_ids)
-        )
-
-        comparison["not_observed_rate"] = safe_percent(
-            len(lost_ids),
-            len(py_ids)
-        )
-
-        comparison["new_customer_share"] = safe_percent(
-            len(new_ids),
-            len(ay_ids)
-        )
-
+        comparison["retention_rate"] = safe_percent(len(common_ids), len(py_ids))
+        comparison["not_observed_rate"] = safe_percent(len(lost_ids), len(py_ids))
+        comparison["new_customer_share"] = safe_percent(len(new_ids), len(ay_ids))
     else:
         comparison = {
             "error": (
-                "Both files must contain a customer identifier column "
-                "(for example CustomerID) to calculate customer-level retention."
+                "A comparable identity field was not detected in both datasets. "
+                "Provide a stable Customer/Account/Patient/Student/Guest/Subscriber ID, "
+                "or a shared email or phone field. Transaction/order IDs are not used as customer identities."
             )
         }
 
@@ -654,176 +1162,63 @@ if py_df is not None and ay_df is not None:
 # --------------------------- MODEL PREPARATION -------------------------------
 
 def prepare_supervised_data(df, threshold):
-    """
-    Prepare a defensible model dataset.
-
-    Explicit target columns take priority. If absent, derive a documented
-    proxy from inactivity days and exclude the inactivity field itself.
-    """
-
+    """Prepare a supervised dataset only when a defensible label exists."""
     work = df.copy()
+    mode, detected_target, mode_reason = classify_analysis_mode(work, selected_industry, threshold)
+    if mode == "exploratory":
+        return None, None, False, mode_reason, mode_reason
 
-    detected_target = find_column(
-        work,
-        ["Churn", "Churned", "Attrition", "Exited", "Target", "Label"]
-    )
+    proxy_used = mode == "proxy_target"
+    label_description = mode_reason
+    excluded = set()
 
-    proxy_used = False
-    label_description = None
-
-    if detected_target:
-
+    if not proxy_used:
         raw = work[detected_target]
-
-        if raw.nunique(dropna=True) != 2:
-            return (
-                None, None, None, None,
-                "Target column must contain exactly two classes."
-            )
-
         if pd.api.types.is_numeric_dtype(raw):
-
-            y = pd.to_numeric(raw, errors="coerce")
-
-            vals = sorted(y.dropna().unique().tolist())
-
-            if len(vals) != 2:
-                return (
-                    None, None, None, None,
-                    "Target must have exactly two usable values."
-                )
-
-            y = y.map({
-                vals[0]: 0,
-                vals[1]: 1
-            })
-
+            values = sorted(pd.to_numeric(raw, errors="coerce").dropna().unique().tolist())
+            if len(values) != 2:
+                return None, None, False, label_description, "Actual target must have exactly two numeric classes."
+            y = pd.to_numeric(raw, errors="coerce").map({values[0]: 0, values[1]: 1})
+            label_description += f" Numeric classes mapped {values[0]}→0 and {values[1]}→1; verify that the higher class represents attrition."
         else:
-
-            text = raw.astype(str).str.strip().str.lower()
-
-            positive = {
-                "yes", "true", "1", "y",
-                "churn", "churned", "exited",
-                "inactive", "attrited"
-            }
-
-            negative = {
-                "no", "false", "0", "n",
-                "retained", "active", "stay", "stayed"
-            }
-
-            mapped = text.map(
-                lambda v: 1 if v in positive
-                else (0 if v in negative else np.nan)
-            )
-
-            if mapped.notna().sum() < len(work) * .8:
-
-                le = LabelEncoder()
-
-                encoded = pd.Series(
-                    le.fit_transform(raw.astype(str)),
-                    index=work.index
-                )
-
-                y = encoded
-
-            else:
-                y = mapped
-
-        excluded = {detected_target}
-
-        label_description = (
-            f"Observed target column: {detected_target}"
-        )
-
+            y = map_churn_binary(raw, selected_industry)
+            if y is None:
+                return None, None, False, label_description, "Target labels are not confidently mapped to retained vs attrited."
+        excluded.add(detected_target)
+        label_description = f"Observed target: {detected_target}. " + label_description
     else:
-
-        inactivity_col = find_column(
-            work,
-            [
-                "DaysSinceLastPurchase",
-                "DaysInactive",
-                "RecencyDays",
-                "DaysSinceLastOrder"
-            ]
-        )
-
-        if not inactivity_col:
-            return (
-                None, None, None, None,
-                "No binary target or inactivity-days field was found. "
-                "Model accuracy cannot be evaluated honestly."
-            )
-
-        inactivity = pd.to_numeric(
-            work[inactivity_col],
-            errors="coerce"
-        )
-
+        inactivity_col = detect_inactivity_column(work, selected_industry)
+        if inactivity_col:
+            inactivity = pd.to_numeric(work[inactivity_col], errors="coerce")
+            excluded.add(inactivity_col)
+            proxy_source = inactivity_col
+        else:
+            inactivity, reference_date, date_col = derive_inactivity_days(work, selected_industry)
+            if inactivity is None:
+                return None, None, True, label_description, "A date field was detected but could not produce usable inactivity values."
+            excluded.add(date_col)
+            proxy_source = f"{date_col} (reference {reference_date.date()})"
         y = (inactivity >= threshold).astype(float)
         y[inactivity.isna()] = np.nan
+        label_description = f"Proxy target: inactivity ≥ {threshold} days from {proxy_source}; the source field is excluded from model features. Metrics evaluate agreement with this rule—not confirmed churn."
 
-        excluded = {inactivity_col}
-        proxy_used = True
-
-        label_description = (
-            f"Proxy label: inactivity >= {threshold} days; "
-            "the inactivity field is excluded from model inputs."
-        )
-
-    # Exclude IDs, free-text identifiers and target from features.
-
+    # Remove identifiers and high-cardinality text identifiers from features.
+    id_names = {"customerid", "customeridentifier", "clientid", "accountid", "accountnumber", "userid", "useridentifier", "memberid", "studentid", "learnerid", "patientid", "personid", "mrn", "guestid", "subscriberid", "organizationid", "orgid", "subscriptionid", "enrollmentid", "customernumber", "transactionid", "purchaseid", "orderid", "recordid", "rowid", "invoiceid", "id", "email", "emailaddress", "contactemail", "phone", "phonenumber", "mobile", "mobilenumber", "contactnumber"}
     for col in work.columns:
-
-        normalized = re.sub(
-            r"[^a-z0-9]",
-            "",
-            str(col).lower()
-        )
-
-        if normalized in {
-            "customerid",
-            "clientid",
-            "accountid",
-            "userid",
-            "id"
-        }:
+        normalized = re.sub(r"[^a-z0-9]", "", str(col).lower())
+        if normalized in id_names:
             excluded.add(col)
 
-    X = work.drop(
-        columns=list(excluded),
-        errors="ignore"
-    ).copy()
-
-    X = X.dropna(axis=1, how="all")
-
-    for col in X.columns:
-
-        if X[col].nunique(dropna=True) > max(
-            1000,
-            int(len(X) * .95)
-        ):
+    X = work.drop(columns=list(excluded), errors="ignore").copy().dropna(axis=1, how="all")
+    for col in list(X.columns):
+        if X[col].nunique(dropna=True) > max(1000, int(len(X) * .95)):
             X = X.drop(columns=[col])
-
     valid = y.notna()
-
-    X = X.loc[valid].copy()
-    y = y.loc[valid].astype(int)
-
+    X, y = X.loc[valid].copy(), y.loc[valid].astype(int)
     if len(X) < 30 or y.nunique() < 2:
-        return (
-            None, None, None, None,
-            "At least 30 usable rows and two target classes are required."
-        )
-
+        return None, None, proxy_used, label_description, "At least 30 usable rows and two classes are required for model training."
     if y.value_counts().min() < 2:
-        return (
-            None, None, None, None,
-            "Each target class needs at least two records for a train/test split."
-        )
-
+        return None, None, proxy_used, label_description, "Each class needs at least two records for stratified splitting."
     return X, y, proxy_used, label_description, None
 
 
@@ -916,6 +1311,17 @@ def train_models_cached(data_hash, X, y):
         pipe.fit(X_train, y_train)
 
         pred = pipe.predict(X_test)
+        try:
+            prob = pipe.predict_proba(X_test)[:, 1]
+            roc_auc = roc_auc_score(y_test, prob)
+            pr_auc = average_precision_score(y_test, prob)
+            fpr, tpr, _ = roc_curve(y_test, prob)
+            pr_precision, pr_recall, _ = precision_recall_curve(y_test, prob)
+        except Exception:
+            prob = None
+            roc_auc = np.nan
+            pr_auc = np.nan
+            fpr, tpr, pr_precision, pr_recall = None, None, None, None
 
         output[name] = {
             "pipeline": pipe,
@@ -923,6 +1329,11 @@ def train_models_cached(data_hash, X, y):
             "precision": precision_score(y_test, pred, zero_division=0),
             "recall": recall_score(y_test, pred, zero_division=0),
             "f1": f1_score(y_test, pred, zero_division=0),
+            "roc_auc": roc_auc,
+            "pr_auc": pr_auc,
+            "prob": prob,
+            "roc_curve": (fpr, tpr),
+            "pr_curve": (pr_recall, pr_precision),
             "cm": confusion_matrix(y_test, pred, labels=[0, 1]),
             "y_test": y_test,
             "pred": pred,
@@ -945,10 +1356,7 @@ if model_error is None:
     try:
 
         model_results = train_models_cached(
-            str(pd.util.hash_pandas_object(
-                X_model,
-                index=True
-            ).sum()),
+            str(pd.util.hash_pandas_object(X_model, index=True).sum()) + "_" + str(pd.util.hash_pandas_object(y_model, index=True).sum()),
             X_model,
             y_model
         )
@@ -965,18 +1373,15 @@ if model_error is None:
 # ----------------------------- REPORT DATA -----------------------------------
 
 report_summary = (
-    "Upload both PY and AY files with a shared customer identifier "
-    "to generate a year-over-year retention summary."
+    f"Industry selected: {selected_industry}. Analysis mode: {MODE_LABELS[analysis_mode]}. "
+    f"{analysis_mode_reason} Upload both PY and AY files with a shared customer identifier "
+    "to generate a year-over-year customer movement summary."
 )
-
 report_table = []
-observations = []
+observations = [f"Analysis mode: {MODE_LABELS[analysis_mode]}. {analysis_mode_reason}"]
 
-actions = [
-    "Segment customers by purchase recency, order frequency and spend; prioritize high-value customers whose activity is declining.",
-    "Investigate low satisfaction scores and repeated support contacts before designing retention campaigns.",
-    "Use region, preferred category and membership tier to tailor customer engagement rather than sending one generic offer to everyone.",
-    "Track the same KPIs each month and validate campaign outcomes against a holdout group where practical."
+actions = INDUSTRIES[selected_industry]["actions"] + [
+    "Monitor retention and engagement indicators consistently; evaluate interventions against measured outcomes where practical."
 ]
 
 limitations = (
@@ -991,13 +1396,13 @@ if isinstance(comparison, dict) and "error" not in comparison:
     c = comparison
 
     report_summary = (
-        f"The PY file contains {c['py_count']:,} distinct customers "
-        f"and the AY file contains {c['ay_count']:,}. "
-        f"{c['retained']:,} customers appear in both files, "
-        f"{c['not_observed']:,} PY customers are not observed in AY, "
-        f"and {c['new']:,} customers appear for the first time in AY. "
-        f"The PY-to-AY observed retention rate is {c['retention_rate']:.1f}%."
+        f"Industry: {selected_industry}. The PY file contains {c['py_count']:,} distinct identity keys "
+        f"and the AY file contains {c['ay_count']:,}. {c['retained']:,} keys appear in both files, "
+        f"{c['not_observed']:,} PY keys are not observed in AY, and {c['new']:,} keys appear in AY. "
+        + (f"Customer retention is not reliably calculable: {c.get('identity_warning')}" if not c.get('retention_comparable', True) else f"The observed identity overlap is {c['retention_rate']:.1f}%; this is a data-presence measure, not confirmed churn.")
     )
+    if c.get("identity_warning"):
+        observations.append(c["identity_warning"])
 
     report_table = [
         (
@@ -1025,19 +1430,17 @@ if isinstance(comparison, dict) and "error" not in comparison:
             "AY IDs absent from PY"
         ),
         (
-            "Observed retention rate",
+            "Observed retention / identity overlap",
             "100.0% reference",
-            f"{c['retention_rate']:.1f}%",
-            "Matched PY customers / PY customers"
+            ("Not reliable" if not c.get("retention_comparable", True) else f"{c['retention_rate']:.1f}%"),
+            ("Year-coded IDs; overlap cannot establish retention" if not c.get("retention_comparable", True) else "Matched PY customers / PY customers")
         )
     ]
 
     observations += [
-        f"Observed retention from PY to AY is {c['retention_rate']:.1f}%.",
-
-        f"{c['not_observed']:,} customers from PY do not appear in the AY file; validate whether they are inactive, migrated, or missing from the extract.",
-
-        f"{c['new']:,} customer IDs are newly observed in AY."
+        (f"Identity overlap from PY to AY is {c['retention_rate']:.1f}%; this is not reliable retention because the identifiers appear year-coded." if not c.get("retention_comparable", True) else f"Observed retention from PY to AY is {c['retention_rate']:.1f}% based on shared identity keys; this is presence-based and not confirmed churn."),
+        f"{c['not_observed']:,} PY identity keys do not appear in the AY file; validate whether records are inactive, migrated, or missing from the extract.",
+        f"{c['new']:,} identity keys are newly observed in AY."
     ]
 
     if spend_col and py_df is not None and ay_df is not None:
@@ -1065,14 +1468,14 @@ if isinstance(comparison, dict) and "error" not in comparison:
             ).sum()
 
             report_table.append((
-                "Total spend / revenue",
+                f"Total {spend_col}",
                 money(psv),
                 money(asv),
                 money(asv - psv)
             ))
 
             observations.append(
-                f"Total spend/revenue changed from {money(psv)} in PY to {money(asv)} in AY."
+                f"{py_spend_col} total changed from {money(psv)} in PY to {money(asv)} in AY."
             )
 
 else:
@@ -1088,8 +1491,7 @@ else:
 
 if page == "Executive Dashboard":
 
-    st.title("🛡️ Churn Guardian")
-    st.subheader("Executive business intelligence dashboard")
+    render_workspace_header("Executive Dashboard", f"Business intelligence · {selected_industry} · {main_label}", "🛡️")
 
     st.markdown(
         f'<span class="status-pill">Analysis dataset: {main_label}</span>',
@@ -1101,91 +1503,62 @@ if page == "Executive Dashboard":
         "Fields not present in your file are not fabricated."
     )
 
+    if analysis_mode == "exploratory":
+        st.info("**Exploratory mode is active.** No verified churn target or defensible inactivity proxy is available. The app will focus on profiles, segments, engagement patterns, descriptive risk indicators, and anomalies—not fabricated churn-model scores.")
+    elif analysis_mode == "proxy_target":
+        st.warning("**Proxy mode is active.** ML scores reflect agreement with the configured inactivity rule, not verified real-world churn.")
+    else:
+        st.success("**Actual-target mode is active.** Supervised model evaluation uses the detected target; check the label mapping before interpreting scores.")
+
+    st.markdown(f"**Automatic analysis mode:** `{MODE_LABELS[analysis_mode]}`")
+    st.caption(analysis_mode_reason)
+    if isinstance(comparison, dict) and "error" not in comparison:
+        st.markdown("**Additional workflow:** PY vs AY customer movement (identity matching; absence is not confirmed churn).")
+
+    total_cells = int(main_df.shape[0] * main_df.shape[1])
+    missing_cells = int(main_df.isna().sum().sum())
+    completeness = 100.0 if total_cells == 0 else (total_cells - missing_cells) / total_cells * 100
+    health_cols = st.columns(4)
+    health_cols[0].metric("Current dataset rows", f"{len(main_df):,}")
+    health_cols[1].metric("Data fields", f"{main_df.shape[1]:,}")
+    health_cols[2].metric("Data completeness", f"{completeness:.1f}%", f"{missing_cells:,} missing cells")
+    health_cols[3].metric("Numeric fields", f"{len(numeric_columns(main_df)):,}")
+
     if isinstance(comparison, dict) and "error" not in comparison:
 
         c = comparison
 
-        k1, k2, k3, k4, k5 = st.columns(5)
-
-        k1.metric("PY customers", f"{c['py_count']:,}")
-
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("PY records / IDs", f"{c['py_count']:,}")
         k2.metric(
-            "AY customers",
-            f"{c['ay_count']:,}",
-            f"{c['ay_count']-c['py_count']:+,}"
+            "AY records / IDs", f"{c['ay_count']:,}",
+            f"{c['ay_count']-c['py_count']:+,} records" if c.get("retention_comparable", True) else None
         )
+        k3.metric("Identity overlap", f"{c['retained']:,}" if c.get("retention_comparable", True) else "Not comparable")
+        k4.metric("Observed retention", f"{c['retention_rate']:.1f}%" if c.get("retention_comparable", True) else "Not calculable")
+        if c.get("identity_warning"):
+            st.warning(c["identity_warning"])
 
-        k3.metric("Returning", f"{c['retained']:,}")
-
-        k4.metric("Not observed", f"{c['not_observed']:,}")
-
-        k5.metric("New in AY", f"{c['new']:,}")
-
-        st.metric(
-            "Observed retention rate",
-            f"{c['retention_rate']:.1f}%"
-        )
-
-        left, right = st.columns(2)
-
-        with left:
-
-            fig = px.pie(
-                names=[
-                    "Returning in AY",
-                    "PY not observed in AY"
-                ],
-                values=[
-                    c["retained"],
-                    c["not_observed"]
-                ],
-                hole=.58,
-                color_discrete_sequence=[
-                    "#10b981",
-                    "#f97373"
-                ],
-                title="PY customer movement"
-            )
-
-            st.plotly_chart(
-                fig,
-                use_container_width=True
-            )
-
-        with right:
-
-            movement = pd.DataFrame({
-                "Customer group": [
-                    "Returning",
-                    "Not observed",
-                    "New in AY"
-                ],
-                "Customers": [
-                    c["retained"],
-                    c["not_observed"],
-                    c["new"]
-                ]
-            })
-
-            fig = px.bar(
-                movement,
-                x="Customer group",
-                y="Customers",
-                color="Customer group",
-                text_auto=True,
-                color_discrete_sequence=[
-                    "#0ea5e9",
-                    "#f97373",
-                    "#a78bfa"
-                ]
-            )
-
-            fig.update_layout(showlegend=False)
-
-            st.plotly_chart(
-                fig,
-                use_container_width=True
-            )
+        if c.get("retention_comparable", True):
+            left, right = st.columns(2)
+            with left:
+                fig = px.pie(
+                    names=["Returning in AY", "PY not observed in AY"],
+                    values=[c["retained"], c["not_observed"]],
+                    hole=.58, color_discrete_sequence=["#34D399", "#FB7185"],
+                    title="PY customer movement"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            with right:
+                movement = pd.DataFrame({
+                    "Customer group": ["Returning", "Not observed", "New in AY"],
+                    "Customers": [c["retained"], c["not_observed"], c["new"]]
+                })
+                fig = px.bar(movement, x="Customer group", y="Customers", color="Customer group", text_auto=True, color_discrete_sequence=["#22D3EE", "#FB7185", "#A78BFA"])
+                fig.update_layout(showlegend=False)
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Customer movement charts are suppressed because the identity keys appear regenerated or year-coded. The PY and AY record counts are still valid snapshots, but zero ID overlap cannot be interpreted as customer loss, acquisition, or retention.")
 
     else:
 
@@ -1206,11 +1579,14 @@ if page == "Executive Dashboard":
 
     cols = st.columns(4)
 
+    financial_metric_title = (
+        f"Total {spend_col}" if spend_col else "Financial value not detected"
+    )
     metrics = [
-        ("Total spend / revenue", spend_col, "sum"),
-        ("Total orders", orders_col, "sum"),
-        ("Average order value", aov_col, "mean"),
-        ("Average satisfaction", satisfaction_col, "mean")
+        (financial_metric_title, spend_col, "sum"),
+        (f"Total recorded volume ({orders_col})" if orders_col else "Total volume not detected", orders_col, "sum"),
+        ("Average value / fee" if aov_col else "Average value not detected", aov_col, "mean"),
+        (f"Average {satisfaction_col}" if satisfaction_col else "Average satisfaction not detected", satisfaction_col, "mean")
     ]
 
     for colbox, (label, col, operation) in zip(cols, metrics):
@@ -1245,6 +1621,40 @@ if page == "Executive Dashboard":
 
                 st.metric(label, "Not available")
 
+    # Industry-aware observed target KPI and segment insight when a target exists.
+    if industry_metric_col and industry_metric_col not in {spend_col, orders_col, aov_col, satisfaction_col}:
+        metric_values = pd.to_numeric(main_df[industry_metric_col], errors="coerce")
+        metric_normalized = re.sub(r"[^a-z0-9]", "", str(industry_metric_col).lower())
+        count_like = any(term in metric_normalized for term in ["count", "visits", "bookings", "stays", "appointments", "transactions", "credits"])
+        average_like = any(term in metric_normalized for term in ["rate", "score", "rating", "grade", "attendance", "engagement", "usage", "progress", "datausage", "seats"])
+        industry_value = metric_values.mean() if average_like and not count_like else metric_values.sum()
+        metric_aggregation = "Average" if average_like and not count_like else "Total"
+        st.metric(f"{metric_aggregation} · {industry_metric_col}", f"{industry_value:,.2f}" if pd.notna(industry_value) else "N/A")
+        st.caption(f"Industry-aware measure: {industry_metric_label}. This is a descriptive numeric summary, not a universal KPI.")
+
+    if target_col:
+        churn_binary = map_binary_target_for_display(main_df[target_col], selected_industry)
+        if churn_binary is not None and churn_binary.dropna().nunique() == 2:
+            churn_rate = safe_percent(churn_binary.eq(1).sum(), churn_binary.notna().sum())
+            st.subheader(f"Observed {INDUSTRIES[selected_industry]['retention_language']} indicator")
+            churn_kpi, retained_kpi = st.columns(2)
+            churn_kpi.metric("Observed attrition / churn", f"{churn_rate:.1f}%", help=f"Mapped from {target_col}; this reflects the dataset's target label.")
+            retained_kpi.metric("Observed retained / active", f"{100-churn_rate:.1f}%")
+            segment_candidates = [c for c in main_df.columns if c != target_col and main_df[c].nunique(dropna=True) <= 30 and main_df[c].nunique(dropna=True) >= 2 and (main_df[c].dtype == 'object' or str(main_df[c].dtype) == 'category')]
+            if segment_candidates:
+                segment_col = next((c for c in segment_candidates if re.sub(r'[^a-z0-9]','',str(c).lower()) in {'segment','customersegment','plan','plantype','tenuregroup','region','department','course','program','membershiptier','servicetype'}), segment_candidates[0])
+                seg_frame = pd.DataFrame({'Segment': main_df[segment_col].fillna('Missing').astype(str), 'Attrition': churn_binary})
+                seg_frame = seg_frame.dropna(subset=['Attrition'])
+                segment_rates = seg_frame.groupby('Segment').agg(Customers=('Attrition','size'), AttritionRate=('Attrition','mean')).reset_index()
+                segment_rates['AttritionRate'] *= 100
+                segment_rates = segment_rates.sort_values('AttritionRate', ascending=False).head(15)
+                st.caption(f"Segment analysis using **{segment_col}**. Select a different segment field in Advanced Visualizer for further exploration.")
+                fig = px.bar(segment_rates, x='Segment', y='AttritionRate', color='AttritionRate', text=segment_rates['AttritionRate'].map(lambda v:f'{v:.1f}%'), color_continuous_scale=['#34D399','#FBBF24','#FB7185'], title='Highest observed attrition-rate segments')
+                fig.update_layout(yaxis_title='Attrition rate (%)')
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.caption(f"Detected target field **{target_col}**, but its values could not be mapped confidently to retained vs attrited. Review labels in Data Quality before interpreting a churn rate.")
+
     if region_col and spend_col:
 
         st.subheader("Revenue / spend by region")
@@ -1268,7 +1678,7 @@ if page == "Executive Dashboard":
             x=region_col,
             y=spend_col,
             color=spend_col,
-            color_continuous_scale="Teal"
+            color_continuous_scale=[[0, "#111827"], [0.5, active_palette["secondary"]], [1, active_palette["accent"]]]
         )
 
         st.plotly_chart(
@@ -1290,12 +1700,13 @@ if page == "Executive Dashboard":
 
         best_name = max(
             model_results,
-            key=lambda n: model_results[n]["f1"]
+            key=lambda n: (model_results[n]["recall"], model_results[n]["f1"])
         )
 
         st.success(
-            f"Highest test-set F1 in this run: "
-            f"{best_name} ({model_results[best_name]['f1']:.3f})."
+            f"Recall-prioritized model in this run: {best_name} "
+            f"(Recall {model_results[best_name]['recall']:.3f}; F1 {model_results[best_name]['f1']:.3f}). "
+            "Recall is emphasized because missed at-risk customers may be costly; review precision and business capacity too."
         )
 
     else:
@@ -1312,7 +1723,7 @@ if page == "Executive Dashboard":
 
 elif page == "PY vs AY Comparison":
 
-    st.title("🔄 Previous Year vs Assessment Year")
+    render_workspace_header("PY vs AY Comparison", f"Customer movement and year-over-year measures · {selected_industry}", "🔄")
 
     st.write(
         "Customer-level comparison is based on matching customer identifiers—not on independently calculated churn percentages."
@@ -1334,24 +1745,30 @@ elif page == "PY vs AY Comparison":
     c = comparison
 
     a, b, d, e = st.columns(4)
-
     a.metric("PY customer base", f"{c['py_count']:,}")
-
-    b.metric("Returning customers", f"{c['retained']:,}")
-
-    d.metric("Not observed in AY", f"{c['not_observed']:,}")
-
-    e.metric("New in AY", f"{c['new']:,}")
-
-    st.metric(
-        "Observed retention rate",
-        f"{c['retention_rate']:.2f}%"
-    )
+    b.metric("AY customer base", f"{c['ay_count']:,}")
+    d.metric("Returning customers", f"{c['retained']:,}" if c.get("retention_comparable", True) else "Not comparable")
+    e.metric("Observed retention", f"{c['retention_rate']:.2f}%" if c.get("retention_comparable", True) else "Not calculable")
+    if c.get("retention_comparable", True):
+        st.metric("Not observed in AY", f"{c['not_observed']:,}")
+        st.metric("New in AY", f"{c['new']:,}")
+    else:
+        st.info("The customer movement categories are hidden because the detected identity keys appear year-generated. Only aggregate PY/AY record counts and optional aggregate measure comparisons are meaningful here until a stable cross-year ID is provided.")
+    if c.get("identity_warning"):
+        st.warning(c["identity_warning"])
 
     st.caption(
-        "Not observed in AY is a data-presence classification, "
-        "not proof that the customer permanently churned."
+        f"Matched using {c.get('match_field', 'detected identity field')} ({c.get('match_kind', 'identity')}). "
+        "Not observed in AY is a data-presence classification, not proof that the customer permanently churned."
     )
+    if c.get("match_kind") == "id" and py_id_col != ay_id_col:
+        st.warning("PY and AY use differently named identity fields. Confirm that both fields represent the same stable customer/entity identity before interpreting the match results.")
+    if c.get("py_duplicates", 0) or c.get("ay_duplicates", 0):
+        st.warning(
+            f"Duplicate identity keys detected: PY {c.get('py_duplicates', 0):,}, "
+            f"AY {c.get('ay_duplicates', 0):,}. Counts represent distinct normalized keys; "
+            "review duplicates before interpreting customer movement."
+        )
 
     chart1, chart2 = st.columns(2)
 
@@ -1362,13 +1779,13 @@ elif page == "PY vs AY Comparison":
                 name="PY",
                 x=["Customer base"],
                 y=[c["py_count"]],
-                marker_color="#64748b"
+                marker_color=active_palette["secondary"]
             ),
             go.Bar(
                 name="AY",
                 x=["Customer base"],
                 y=[c["ay_count"]],
-                marker_color="#0d9488"
+                marker_color=active_palette["accent"]
             )
         ])
 
@@ -1383,57 +1800,23 @@ elif page == "PY vs AY Comparison":
         )
 
     with chart2:
+        if c.get("retention_comparable", True):
+            fig = px.funnel(
+                pd.DataFrame({"Stage": ["PY identity keys", "Returning in AY"], "Customers": [c["py_count"], c["retained"]]}),
+                x="Customers", y="Stage", title="PY customer retention funnel"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Retention funnel unavailable: year-coded IDs have no verified cross-year match.")
 
-        fig = px.funnel(
-            pd.DataFrame({
-                "Stage": [
-                    "PY customers",
-                    "Returning in AY"
-                ],
-                "Customers": [
-                    c["py_count"],
-                    c["retained"]
-                ]
-            }),
-            x="Customers",
-            y="Stage",
-            title="PY customer retention funnel"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
-    st.subheader("Movement summary")
-
-    movement_df = pd.DataFrame([
-        [
-            "Returning customers",
-            c["retained"],
-            "Customer ID exists in both years"
-        ],
-        [
-            "Not observed in AY",
-            c["not_observed"],
-            "Customer ID exists in PY but not AY"
-        ],
-        [
-            "Newly observed in AY",
-            c["new"],
-            "Customer ID exists in AY but not PY"
-        ]
-    ], columns=[
-        "Segment",
-        "Customer count",
-        "Definition"
-    ])
-
-    st.dataframe(
-        movement_df,
-        use_container_width=True,
-        hide_index=True
-    )
+    if c.get("retention_comparable", True):
+        st.subheader("Movement summary")
+        movement_df = pd.DataFrame([
+            ["Returning customers", c["retained"], "Customer ID exists in both years"],
+            ["Not observed in AY", c["not_observed"], "Customer ID exists in PY but not AY"],
+            ["Newly observed in AY", c["new"], "Customer ID exists in AY but not PY"]
+        ], columns=["Segment", "Customer count", "Definition"])
+        st.dataframe(movement_df, use_container_width=True, hide_index=True)
 
     st.subheader("Optional measure comparison")
 
@@ -1441,8 +1824,8 @@ elif page == "PY vs AY Comparison":
 
     for candidates, label in [
         (
-            ["TotalSpend", "Total_Spend", "Revenue", "Sales", "TotalRevenue", "Amount"],
-            "Spend / Revenue"
+            financial_candidates_by_industry[selected_industry] + ["TotalSpend", "Total_Spend", "Revenue", "Sales", "TotalRevenue", "Amount"],
+            "Financial value"
         ),
         (
             ["OrderCount", "Orders", "NumberOfOrders", "PurchaseCount"],
@@ -1557,7 +1940,7 @@ elif page == "PY vs AY Comparison":
 
 elif page == "Advanced Visualizer":
 
-    st.title("📈 Advanced Business Visualizer")
+    render_workspace_header("Advanced Visualizer", f"Explore distributions, relationships and segments · {selected_industry}", "📈")
 
     st.caption(
         "Choose columns from the uploaded dataset to create interactive charts."
@@ -1602,7 +1985,7 @@ elif page == "Advanced Visualizer":
                 x=metric,
                 nbins=30,
                 marginal="box",
-                color_discrete_sequence=["#0ea5e9"]
+                color_discrete_sequence=active_palette["chart"]
             )
 
             st.plotly_chart(
@@ -1715,7 +2098,7 @@ elif page == "Advanced Visualizer":
             x=cat,
             y=agg,
             color=agg,
-            color_continuous_scale="Tealgrn",
+            color_continuous_scale=[[0, "#111827"], [0.5, active_palette["secondary"]], [1, active_palette["accent"]]],
             text_auto=".2s"
         )
 
@@ -1891,7 +2274,7 @@ elif page == "Advanced Visualizer":
 
 elif page == "Data Quality & Ingestion":
 
-    st.title("📥 Data Quality & Smart Ingestion")
+    render_workspace_header("Data Quality & Ingestion", f"Profile, validate and prepare your dataset · {selected_industry}", "📥")
 
     st.write(
         "Review the uploaded data, schema, missing values, duplicates and numeric summaries."
@@ -1987,11 +2370,11 @@ elif page == "Data Quality & Ingestion":
 
 elif page == "ML Model Evaluation":
 
-    st.title("🤖 Machine Learning Model Evaluation")
+    render_workspace_header("ML Model Evaluation", f"Model readiness, evaluation and explainability · {selected_industry}", "🤖")
 
-    st.write(
-        "Compare Decision Tree, Random Forest and XGBoost using a held-out test set."
-    )
+    st.write("The workspace adapts automatically to the dataset's analytical mode.")
+    st.markdown(f"**Current mode:** `{MODE_LABELS[analysis_mode]}`")
+    st.caption(analysis_mode_reason)
 
     if not XGBOOST_AVAILABLE:
 
@@ -2025,6 +2408,14 @@ elif page == "ML Model Evaluation":
                 "Metrics below are evaluated against that supplied target."
             )
 
+        model_comparison = pd.DataFrame([
+            {"Model": name, "Accuracy": result["accuracy"], "Precision": result["precision"], "Recall": result["recall"], "F1": result["f1"], "ROC-AUC": result.get("roc_auc", np.nan), "PR-AUC": result.get("pr_auc", np.nan)}
+            for name, result in model_results.items()
+        ]).sort_values(["Recall", "F1"], ascending=False)
+        st.subheader("Model comparison · recall prioritized")
+        st.dataframe(model_comparison.style.format({c:"{:.3f}" for c in model_comparison.columns if c != "Model"}), use_container_width=True, hide_index=True)
+        st.caption("Recall is emphasized for churn-risk screening. Choose thresholds and outreach capacity with business stakeholders; a high recall model can also produce more false positives.")
+
         chosen = st.selectbox(
             "Choose model",
             list(model_results.keys())
@@ -2054,6 +2445,10 @@ elif page == "ML Model Evaluation":
             f"{res['f1'] * 100:.1f}%"
         )
 
+        a_auc, a_pr = st.columns(2)
+        a_auc.metric("ROC-AUC", f"{res['roc_auc']:.3f}" if pd.notna(res.get("roc_auc")) else "N/A")
+        a_pr.metric("PR-AUC", f"{res['pr_auc']:.3f}" if pd.notna(res.get("pr_auc")) else "N/A")
+
         left, right = st.columns(2)
 
         with left:
@@ -2063,7 +2458,7 @@ elif page == "ML Model Evaluation":
                 text_auto=True,
                 x=["Predicted 0", "Predicted 1"],
                 y=["Actual 0", "Actual 1"],
-                color_continuous_scale="Purples",
+                color_continuous_scale=[[0, "#111827"], [0.45, active_palette["secondary"]], [1, active_palette["accent"]],],
                 title="Confusion matrix"
             )
 
@@ -2089,6 +2484,43 @@ elif page == "ML Model Evaluation":
                 report_df.round(3),
                 use_container_width=True
             )
+
+        if res.get("prob") is not None:
+            curve_left, curve_right = st.columns(2)
+            with curve_left:
+                roc_fpr, roc_tpr = res["roc_curve"]
+                roc_fig = go.Figure()
+                roc_fig.add_trace(go.Scatter(x=roc_fpr, y=roc_tpr, mode="lines", name=f"ROC · AUC {res['roc_auc']:.3f}", line={"color": active_palette["accent"], "width": 3}))
+                roc_fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Random baseline", line={"color": "#64748B", "dash": "dash"}))
+                roc_fig.update_layout(title="ROC curve", xaxis_title="False positive rate", yaxis_title="True positive rate", template="plotly_dark")
+                st.plotly_chart(roc_fig, use_container_width=True)
+            with curve_right:
+                pr_recall_values, pr_precision_values = res["pr_curve"]
+                pr_fig = go.Figure()
+                pr_fig.add_trace(go.Scatter(x=pr_recall_values, y=pr_precision_values, mode="lines", name=f"PR · AP {res['pr_auc']:.3f}", line={"color": active_palette["secondary"], "width": 3}))
+                pr_fig.update_layout(title="Precision–Recall curve", xaxis_title="Recall", yaxis_title="Precision", template="plotly_dark")
+                st.plotly_chart(pr_fig, use_container_width=True)
+
+        st.subheader("Test-set churn risk predictions")
+        prediction_frame = pd.DataFrame({
+            "Actual label": res["y_test"].values,
+            "Predicted label": res["pred"],
+            "Predicted attrition probability": res["prob"] if res.get("prob") is not None else np.nan,
+        }, index=res["X_test"].index)
+        if id_col and id_col in main_df.columns:
+            prediction_frame.insert(0, "Customer / entity ID", main_df.loc[prediction_frame.index, id_col].astype(str).values)
+        prediction_frame["Risk band"] = prediction_frame["Predicted attrition probability"].apply(
+            lambda p: "High" if pd.notna(p) and p >= .70 else ("Medium" if pd.notna(p) and p >= .40 else ("Low" if pd.notna(p) else "Unavailable"))
+        )
+        high_risk_predictions = prediction_frame.sort_values("Predicted attrition probability", ascending=False).head(25)
+        st.dataframe(high_risk_predictions, use_container_width=True, hide_index=True)
+        add_download_button(
+            "⬇️ Download test-set risk predictions (CSV)",
+            prediction_frame.sort_values("Predicted attrition probability", ascending=False).to_csv(index=False).encode("utf-8"),
+            "Churn_Guardian_Test_Risk_Predictions.csv",
+            "text/csv"
+        )
+        st.caption("Probabilities are generated from the held-out test split. Risk bands are illustrative thresholds (40% and 70%) and should be calibrated before operational use.")
 
         st.subheader("Feature contribution")
 
@@ -2119,7 +2551,7 @@ elif page == "ML Model Evaluation":
                 y="Feature",
                 orientation="h",
                 color="Importance",
-                color_continuous_scale="Teal"
+                color_continuous_scale=[[0, "#111827"], [0.45, active_palette["secondary"]], [1, active_palette["accent"]]]
             )
 
             st.plotly_chart(
@@ -2134,19 +2566,39 @@ elif page == "ML Model Evaluation":
             )
 
     else:
-
-        st.warning(
-            model_error or "Model evaluation is unavailable."
-        )
-
-        st.markdown("""
-        **To enable supervised evaluation, upload a dataset with:**
-
-        - A binary target column such as `Churn`, `Churned`, `Attrition` or `Exited`; or
-        - A numeric inactivity field such as `DaysSinceLastPurchase`, which enables an explicitly labelled proxy evaluation.
-
-        For a dataset with no target and no inactivity measure, the app will not invent accuracy, precision, recall or F1 scores.
-        """)
+        st.warning(model_error or "Model evaluation is unavailable.")
+        if analysis_mode == "exploratory":
+            st.subheader("Exploratory analytics instead of fabricated ML metrics")
+            st.info("This dataset does not contain a defensible supervised target. Explore it with descriptive analytics below.")
+            numeric = main_df.select_dtypes(include=np.number).columns.tolist()
+            categorical = [c for c in main_df.columns if c not in numeric and main_df[c].nunique(dropna=True) <= 30 and main_df[c].nunique(dropna=True) >= 2]
+            ex1, ex2, ex3 = st.columns(3)
+            ex1.metric("Records", f"{len(main_df):,}")
+            ex2.metric("Numeric fields", f"{len(numeric):,}")
+            ex3.metric("Categorical fields", f"{len(categorical):,}")
+            if numeric:
+                selected_numeric = st.selectbox("Explore a numeric field", numeric, key="explore_numeric_mode")
+                values = pd.to_numeric(main_df[selected_numeric], errors="coerce").dropna()
+                if not values.empty:
+                    exa, exb, exc = st.columns(3)
+                    exa.metric("Mean", f"{values.mean():,.2f}")
+                    exb.metric("Median", f"{values.median():,.2f}")
+                    exc.metric("Std. deviation", f"{values.std():,.2f}")
+                    hist = px.histogram(main_df, x=selected_numeric, nbins=30, color_discrete_sequence=[active_palette["accent"]], title=f"Distribution · {selected_numeric}")
+                    st.plotly_chart(hist, use_container_width=True)
+            if categorical:
+                selected_category = st.selectbox("Explore a categorical field", categorical, key="explore_category_mode")
+                counts = main_df[selected_category].fillna("Missing").astype(str).value_counts().head(20).reset_index()
+                counts.columns = [selected_category, "Records"]
+                cat_fig = px.bar(counts, x=selected_category, y="Records", color="Records", color_continuous_scale=[[0,"#172033"],[0.5,active_palette["secondary"]],[1,active_palette["accent"]]], title=f"Top categories · {selected_category}")
+                st.plotly_chart(cat_fig, use_container_width=True)
+            if len(numeric) >= 2:
+                st.subheader("Numeric correlation overview")
+                corr = main_df[numeric].corr(numeric_only=True)
+                corr_fig = px.imshow(corr, text_auto=".2f", color_continuous_scale="RdBu", zmin=-1, zmax=1, title="Correlation matrix")
+                st.plotly_chart(corr_fig, use_container_width=True)
+        else:
+            st.markdown("**To enable supervised evaluation, verify the detected target or supported inactivity field/date.** The app will not invent Accuracy, Precision, Recall, or F1 scores.")
 
 
 # =============================================================================
@@ -2155,10 +2607,10 @@ elif page == "ML Model Evaluation":
 
 elif page == "Stakeholder Report":
 
-    st.title("📑 Stakeholder Business Report")
+    render_workspace_header("Stakeholder Report", f"Evidence-based summary and recommendations · {selected_industry}", "📑")
 
     st.write(
-        "A concise, evidence-based report generated from the uploaded datasets."
+        f"A concise, evidence-based report generated from the uploaded datasets for **{selected_industry}**."
     )
 
     st.subheader("Executive summary")
@@ -2264,7 +2716,7 @@ elif page == "Stakeholder Report":
 
 elif page == "Business Assistant":
 
-    st.title("💬 Churn Guardian Business Assistant")
+    render_workspace_header("Business Assistant", f"Ask questions about the uploaded dataset · {selected_industry}", "💬")
 
     st.write(
         "Ask questions about the uploaded data and the calculations in this dashboard."
@@ -2304,11 +2756,10 @@ elif page == "Business Assistant":
 
             if isinstance(comparison, dict) and "error" not in comparison:
 
-                answer_parts.append(
-                    f"The observed retention rate is **{comparison['retention_rate']:.1f}%**. "
-                    f"{comparison['retained']:,} customer IDs appear in both PY and AY, "
-                    f"out of {comparison['py_count']:,} PY customers."
-                )
+                if comparison.get("retention_comparable", True):
+                    answer_parts.append(f"The observed identity overlap is **{comparison['retention_rate']:.1f}%**. {comparison['retained']:,} IDs appear in both PY and AY, out of {comparison['py_count']:,} PY IDs. This is a presence-based metric, not confirmed churn.")
+                else:
+                    answer_parts.append(f"Retention cannot be reliably calculated from the current identifiers. {comparison.get('identity_warning', '')}")
 
             else:
 
@@ -2354,7 +2805,7 @@ elif page == "Business Assistant":
                 ).sum()
 
                 answer_parts.append(
-                    f"Total {spend_col} in the current AY dataset is **{money(value)}**."
+                    f"Total recorded **{spend_col}** in the current dataset is **{money(value)}**."
                 )
 
             else:
@@ -2376,7 +2827,7 @@ elif page == "Business Assistant":
                 ).sum()
 
                 answer_parts.append(
-                    f"Total recorded {orders_col} in the current dataset is **{value:,.0f}**."
+                    f"Total recorded **{orders_col}** in the current dataset is **{value:,.0f}**."
                 )
 
             else:
@@ -2407,6 +2858,22 @@ elif page == "Business Assistant":
                     "No satisfaction score field was detected."
                 )
 
+        if any(word in q for word in ["mode", "analysis mode", "exploratory", "proxy"]):
+            answer_parts.append(f"The current automatic analysis mode is **{MODE_LABELS[analysis_mode]}**. {analysis_mode_reason}")
+
+        if any(word in q for word in ["industry", "healthcare", "banking", "education", "hospitality", "telecom", "saas"]):
+            answer_parts.append(
+                f"The selected industry is **{selected_industry}**. In this context, the app interprets retention as **{INDUSTRIES[selected_industry]['retention_language']}**. "
+                f"Industry-specific risk examples include {INDUSTRIES[selected_industry]['examples']}."
+            )
+
+        if any(word in q for word in ["threshold", "inactivity days", "inactive for", "days inactive"]):
+            answer_parts.append(
+                f"The current inactivity threshold is **{inactivity_days} days**. "
+                "This threshold is used only when an inactivity-days field is available and the dataset does not provide a usable observed target. "
+                "The resulting label is a rule-based proxy, not verified churn."
+            )
+
         if any(
             word in q
             for word in [
@@ -2423,12 +2890,12 @@ elif page == "Business Assistant":
 
                 best = max(
                     model_results,
-                    key=lambda n: model_results[n]["f1"]
+                    key=lambda n: (model_results[n]["recall"], model_results[n]["f1"])
                 )
 
                 answer_parts.append(
-                    f"The highest F1 score in the current test split is **{best}** "
-                    f"({model_results[best]['f1']:.3f}). "
+                    f"The recall-prioritized model in the current test split is **{best}** "
+                    f"(Recall {model_results[best]['recall']:.3f}; F1 {model_results[best]['f1']:.3f}). "
                     f"Label basis: {model_note}. "
                     "If the label is a proxy, this is not verified churn accuracy."
                 )
@@ -2438,6 +2905,39 @@ elif page == "Business Assistant":
                 answer_parts.append(
                     "Model metrics are unavailable because the dataset has no valid binary target or supported inactivity proxy."
                 )
+
+        if any(word in q for word in ["highest churn", "highest attrition", "highest dropout", "most at risk", "risk segment", "segment with highest"]):
+            if target_col:
+                mapped_target = map_binary_target_for_display(main_df[target_col], selected_industry)
+                candidate_segments = [col for col in main_df.columns if col != target_col and main_df[col].nunique(dropna=True) <= 30 and main_df[col].nunique(dropna=True) >= 2 and (main_df[col].dtype == 'object' or str(main_df[col].dtype) == 'category')]
+                if mapped_target is not None and candidate_segments:
+                    segment_col = next((col for col in candidate_segments if re.sub(r'[^a-z0-9]','',str(col).lower()) in {'segment','customersegment','plan','plantype','tenuregroup','region','department','course','program','membershiptier','servicetype'}), candidate_segments[0])
+                    seg = pd.DataFrame({'Segment':main_df[segment_col].fillna('Missing').astype(str),'Target':mapped_target}).dropna(subset=['Target'])
+                    rates=seg.groupby('Segment').agg(Customers=('Target','size'), Rate=('Target','mean')).reset_index()
+                    rates['Rate']*=100
+                    rates=rates.sort_values('Rate',ascending=False)
+                    if len(rates):
+                        top=rates.iloc[0]
+                        answer_parts.append(f"Using **{segment_col}** as the segment field, **{top['Segment']}** has the highest observed attrition/churn rate at **{top['Rate']:.1f}%** ({int(top['Customers']):,} records). This is calculated from target column **{target_col}** and is descriptive of the uploaded data, not causal.")
+                else:
+                    answer_parts.append("A highest-churn segment cannot be calculated reliably: a binary attrition target and a suitable categorical segment field are required.")
+            else:
+                answer_parts.append("No recognized churn/attrition target is available. I cannot claim a segment has the highest observed churn rate without a target; I can still describe customer movement or a supported inactivity proxy.")
+
+        if any(word in q for word in ["reason", "reasons", "factor", "factors", "why churn", "contributing"]):
+            if model_results:
+                best_factor_model = max(model_results, key=lambda n: (model_results[n]["recall"], model_results[n]["f1"]))
+                estimator = model_results[best_factor_model]["pipeline"].named_steps["model"]
+                try:
+                    importances = estimator.feature_importances_
+                    names = model_results[best_factor_model]["pipeline"].named_steps["prep"].get_feature_names_out()
+                    top_features = pd.DataFrame({"feature": names, "importance": importances}).sort_values("importance", ascending=False).head(5)
+                    factor_text = ", ".join(f"**{str(row.feature).replace('num__','').replace('cat__','')}** ({row.importance:.3f})" for row in top_features.itertuples())
+                    answer_parts.append(f"Top model-associated features from **{best_factor_model}**: {factor_text}. These are predictive associations in this dataset—not proof of causes. Validate them with domain experts before acting.")
+                except Exception:
+                    answer_parts.append("Feature importance is unavailable for the current model configuration; I cannot substantiate contributing factors from this run.")
+            else:
+                answer_parts.append("No trained model is available to identify model-associated factors. I can only describe available fields and descriptive patterns.")
 
         if any(
             word in q
@@ -2452,18 +2952,15 @@ elif page == "Business Assistant":
         ):
 
             answer_parts.append(
-                "I can explain customer movement, observed retention, new customers, "
-                "available business measures, data quality, ML evaluation and the report. "
-                "I only answer from fields available in the uploaded data."
+                f"I can explain customer movement, observed retention, new customers, business measures, data quality, ML evaluation and the report for **{selected_industry}**. "
+                "I only answer from fields available in the uploaded data and clearly identify proxies or unavailable metrics."
             )
 
         if not answer_parts:
 
             answer_parts.append(
-                "I can answer questions about observed retention, new customers, "
-                "customers not observed in AY, revenue/spend, orders, satisfaction, "
-                "model evaluation and retention recommendations. "
-                "Try asking one of those questions."
+                f"I can answer questions about {INDUSTRIES[selected_industry]['retention_language']}, customer/entity movement, available measures, data quality, model evaluation, feature associations and industry recommendations. "
+                "Try asking a specific question about the uploaded data."
             )
 
         answer = "\n\n".join(answer_parts)
@@ -2486,6 +2983,6 @@ elif page == "Business Assistant":
 st.markdown("---")
 
 st.caption(
-    "🛡️ Churn Guardian | Business analytics support tool | "
+    f"🛡️ Churn Guardian | {selected_industry} analytics | Business analytics support tool | "
     "Validate business decisions with source-system owners."
 )
